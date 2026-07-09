@@ -1,6 +1,6 @@
+from rest_framework.exceptions import NotFound
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
-from rest_framework.exceptions import NotFound
 
 from apps.users.models import UserRole
 from apps.users.repositories import UserRepository

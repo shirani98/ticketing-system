@@ -1,10 +1,7 @@
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
-from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 
-from apps.orders.repositories import OrderRepository
-from apps.orders.serializers import OrderSerializer
 from apps.tickets.repositories import TicketRepository
 from apps.tickets.serializers import (
     CreateMessageSerializer,
@@ -13,7 +10,7 @@ from apps.tickets.serializers import (
     TicketListSerializer,
 )
 from apps.tickets.services import TicketService
-from apps.tickets.views.customer_mixin import CustomerAPIView
+from apps.users.mixins import CustomerAPIView
 
 USER_ID_HEADER = OpenApiParameter(
     name="X-User-Id",
@@ -24,24 +21,6 @@ USER_ID_HEADER = OpenApiParameter(
 )
 
 
-class OrderListView(CustomerAPIView, ListAPIView):
-    serializer_class = OrderSerializer
-    parser_classes = [JSONParser, FormParser, MultiPartParser]
-
-    def get_queryset(self):
-        return OrderRepository.list_for_customer(self.get_customer().id)
-
-    @extend_schema(
-        summary="List customer orders",
-        description="Returns active and historical orders for the customer.",
-        parameters=[USER_ID_HEADER],
-        responses=OrderSerializer(many=True),
-        auth=[],
-    )
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
-
-
 class TicketListCreateView(CustomerAPIView):
     parser_classes = [JSONParser, FormParser, MultiPartParser]
 
@@ -50,6 +29,7 @@ class TicketListCreateView(CustomerAPIView):
         parameters=[USER_ID_HEADER],
         responses=TicketListSerializer(many=True),
         auth=[],
+        tags=["User"],
     )
     def get(self, request):
         customer = self.get_customer()
@@ -69,6 +49,7 @@ class TicketListCreateView(CustomerAPIView):
         },
         responses={201: TicketDetailSerializer},
         auth=[],
+        tags=["User"],
     )
     def post(self, request):
         customer = self.get_customer()
@@ -94,6 +75,7 @@ class TicketDetailView(CustomerAPIView):
             404: OpenApiResponse(description="Ticket not found."),
         },
         auth=[],
+        tags=["User"],
     )
     def get(self, request, pk):
         customer = self.get_customer()
@@ -112,6 +94,7 @@ class TicketMessageCreateView(CustomerAPIView):
         request=CreateMessageSerializer,
         responses={201: TicketDetailSerializer},
         auth=[],
+        tags=["User"],
     )
     def post(self, request, pk):
         customer = self.get_customer()
@@ -132,6 +115,7 @@ class TicketReopenView(CustomerAPIView):
         parameters=[USER_ID_HEADER],
         responses={200: TicketDetailSerializer},
         auth=[],
+        tags=["User"],
     )
     def post(self, request, pk):
         customer = self.get_customer()

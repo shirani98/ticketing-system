@@ -20,6 +20,18 @@ class Command(BaseCommand):
         customer.set_password("pass")
         customer.save()
 
+        admin, _ = User.objects.get_or_create(
+            username="admin1",
+            defaults={
+                "email": "admin1@example.com",
+                "phone": "+10000000002",
+                "role": UserRole.ADMIN,
+                "is_staff": True,
+            },
+        )
+        admin.set_password("pass")
+        admin.save()
+
         statuses = [
             OrderStatus.AWAITING_PAYMENT,
             OrderStatus.PAID,
@@ -44,3 +56,4 @@ class Command(BaseCommand):
                 self.stdout.write(f"Order already exists for status {status}")
 
         self.stdout.write(self.style.SUCCESS(f"Demo customer id: {customer.id}"))
+        self.stdout.write(self.style.SUCCESS(f"Demo admin id: {admin.id}"))

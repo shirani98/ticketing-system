@@ -93,6 +93,22 @@ class TicketService:
         ticket.save(update_fields=["status", "reopened_at", "updated_at"])
         return TicketRepository.get_detail_for_customer(ticket.id, customer.id)
 
+    @classmethod
+    def add_support_reply(cls, admin, ticket_id: int, body: str):
+        ticket = TicketRepository.get_detail_admin(ticket_id)
+        if ticket is None:
+            raise NotFound("Ticket not found.")
+        if not body.strip():
+            raise ValidationError({"body": "Message is required."})
+
+        TicketMessage.objects.create(
+            ticket=ticket,
+            sender=admin,
+            sender_type=SenderType.SUPPORT,
+            body=body.strip(),
+        )
+        return TicketRepository.get_detail_admin(ticket.id)
+
     @staticmethod
     def _validate_creation_payload(order, message, description, photo):
         if order.status == OrderStatus.DELIVERED:
