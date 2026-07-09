@@ -2,6 +2,8 @@
 
 Back-end API for a support ticketing system (assessment project).
 
+Built with Django, Django REST Framework, PostgreSQL, Celery, Redis, and Nginx via Docker Compose.
+
 ## Run locally with Docker
 
 ```bash
@@ -9,25 +11,35 @@ cp .env.example .env
 docker compose up --build
 ```
 
+API base URL: `http://localhost:8080`
+
+Swagger UI: `http://localhost:8080/swagger/`
+
 ## Seed demo data
 
-After the stack is running, load sample customer and orders:
+After the stack is running:
 
 ```bash
 docker compose exec web python manage.py seed_demo
 ```
 
-This creates a demo customer (`customer1`) with one order per status. The command prints the customer id to use with optional `X-User-Id` header.
+This creates:
+- demo customer `customer1` (one order per status)
+- demo admin `admin1`
 
-## Notifications
+The command prints their user ids.
 
-Every ticket message triggers placeholder email and SMS jobs through Celery. Check worker logs:
 
-```bash
-docker compose logs -f worker
-```
+## Time spent
 
-## Notes
+| Area | Approx. time |
+|------|--------------|
+| Bootstrap (Docker, Nginx, Django/DRF) | 1.5 h |
+| Data model + repositories | 2.5 h |
+| User API + business rules | 2 h |
+| Admin API | 1 h |
+| Celery notifications | 1 h |
+| Swagger + README | 0.5 h |
+| **Total** | **~8.5 h** |
 
-- Nginx proxies all requests to the Django app.
-- Swagger UI: `http://localhost:8080/swagger/`
+_Update the total above to reflect your actual time._
