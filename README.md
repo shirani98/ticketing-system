@@ -19,6 +19,14 @@ docker compose exec web python manage.py seed_demo
 
 This creates a demo customer (`customer1`) with one order per status. The command prints the customer id to use with optional `X-User-Id` header.
 
+## Notifications
+
+Every ticket message triggers placeholder email and SMS jobs through Celery. Check worker logs:
+
+```bash
+docker compose logs -f worker
+```
+
 ## Notes
 
 - Nginx proxies all requests to the Django app.

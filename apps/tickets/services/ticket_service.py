@@ -9,6 +9,7 @@ from apps.orders.repositories import OrderRepository
 from apps.tickets.models import Attachment, SenderType, Ticket, TicketMessage, TicketStatus
 from apps.tickets.repositories import TicketRepository
 from apps.tickets.validators import validate_image_upload
+from apps.notifications.services import schedule_customer_notification
 
 
 class TicketService:
@@ -34,7 +35,7 @@ class TicketService:
 
         with transaction.atomic():
             ticket = Ticket.objects.create(order=order)
-            ticket_message = TicketMessage.objects.create(
+            ticket_message = cls._create_message(
                 ticket=ticket,
                 sender=customer,
                 sender_type=SenderType.CUSTOMER,
@@ -61,7 +62,7 @@ class TicketService:
         if not body.strip():
             raise ValidationError({"body": "Message is required."})
 
-        TicketMessage.objects.create(
+        cls._create_message(
             ticket=ticket,
             sender=customer,
             sender_type=SenderType.CUSTOMER,
@@ -101,13 +102,24 @@ class TicketService:
         if not body.strip():
             raise ValidationError({"body": "Message is required."})
 
-        TicketMessage.objects.create(
+        cls._create_message(
             ticket=ticket,
             sender=admin,
             sender_type=SenderType.SUPPORT,
             body=body.strip(),
         )
         return TicketRepository.get_detail_admin(ticket.id)
+
+    @classmethod
+    def _create_message(cls, ticket, sender, sender_type, body: str) -> TicketMessage:
+        message = TicketMessage.objects.create(
+            ticket=ticket,
+            sender=sender,
+            sender_type=sender_type,
+            body=body,
+        )
+        schedule_customer_notification(message.id)
+        return message
 
     @staticmethod
     def _validate_creation_payload(order, message, description, photo):

@@ -19,6 +19,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     volumes:
       - .:/app
       - media_data:/app/media
@@ -30,6 +32,24 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+
+  worker:
+    build: .
+    command: celery -A config worker -l info
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - .:/app
+      - media_data:/app/media
+
+  redis:
+    image: redis:alpine
+    expose:
+      - "6379"
 
   nginx:
     image: nginx:alpine
